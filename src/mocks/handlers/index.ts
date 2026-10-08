@@ -34,6 +34,7 @@ export function createMockTransport(scenario = "empty"): Transport {
   if (!scenarios.includes(scenario as (typeof scenarios)[number]))
     throw new Error(`Unknown Mock scenario: ${scenario}`);
   const revoked = new Set<string>();
+  const feedbackKey = `zhicha-showcase-v0.1:${scenario}:teacher_001:demo_session_001:review_0001`;
   let request = 0;
   return async (url, init) => {
     const parsed = new URL(url, "http://mock.local");
@@ -195,6 +196,7 @@ export function createMockTransport(scenario = "empty"): Transport {
       return fail(409, "VERSION_MISMATCH", "演示资源与当前 Contract 版本冲突");
     const empty = scenario === "empty";
     const quality = demo.quality;
+    const state = demo.classState();
     if (path === "/classes")
       return respond(
         page(
@@ -231,9 +233,9 @@ export function createMockTransport(scenario = "empty"): Transport {
           {
             metric_key: "return_ratio_q05",
             label: "Q5 返回率",
-            value: 0.2,
+            value: state.return_ratio.Q05,
             unit: "ratio",
-            display_value: "20%",
+            display_value: `${((state.return_ratio.Q05 ?? 0) * 100).toFixed(1)}%`,
             quality,
             evidence_refs: [demo.evidenceId],
           },
@@ -251,8 +253,8 @@ export function createMockTransport(scenario = "empty"): Transport {
             evidence_refs: [],
           },
         ],
-        question_distribution: [{ question_id: "Q05", count: 12, ratio: 0.3 }],
-        key_nodes: [demo.node],
+        question_distribution: state.question_distribution,
+        key_nodes: [demo.keyNode()],
         macro_vision:
           scenario === "demo_missing_vision"
             ? {
@@ -268,19 +270,11 @@ export function createMockTransport(scenario = "empty"): Transport {
       });
     if (path.endsWith("/class-state"))
       return respond({
-        window: { start_ms: 840000, end_ms: 900000 },
-        valid_participant_count: 40,
-        question_distribution: [{ question_id: "Q05", count: 12, ratio: 0.3 }],
-        return_ratio: { Q05: 0.2 },
-        revision_candidate_ratio: { Q05: 0.125 },
-        completion_ratio: null,
-        progress_divergence: { variance: 0.082, entropy_norm: 0.71 },
+        ...state,
         quality: {
-          ...quality,
+          ...state.quality,
           availability:
             scenario === "demo_not_computable" ? "NOT_COMPUTABLE" : "PARTIAL",
-          flags: ["COMPLETION_NOT_COMPUTABLE"],
-          reason: "No trusted completion marker",
         },
       });
     if (path.endsWith("/key-nodes"))
@@ -289,20 +283,20 @@ export function createMockTransport(scenario = "empty"): Transport {
           parsed.searchParams.get("question_id") &&
             parsed.searchParams.get("question_id") !== "Q05"
             ? []
-            : [demo.node],
+            : [demo.keyNode()],
         ),
       );
     if (/\/questions\/[^/]+$/.test(path))
-      return path.endsWith("/Q05")
+      return demo.questions.some((q) => path.endsWith(`/${q.question_id}`))
         ? respond({
-            question_id: "Q05",
+            question_id: path.split("/").at(-1),
             knowledge_point: "分数应用题",
-            question_distribution: [
-              { question_id: "Q05", count: 12, ratio: 0.3 },
-            ],
-            key_nodes: [demo.node],
-            students: [{ participant_id: "anon_p017" }],
-            evidence_refs: [demo.evidenceId],
+            question_distribution: state.question_distribution.filter((q) =>
+              path.endsWith(`/${q.question_id}`),
+            ),
+            key_nodes: path.endsWith("/Q05") ? [demo.keyNode()] : [],
+            students: demo.participants,
+            evidence_refs: path.endsWith("/Q05") ? [demo.evidenceId] : [],
           })
         : fail(404, "NOT_FOUND", "题目不存在");
     if (path.endsWith("/students")) {
@@ -310,18 +304,27 @@ export function createMockTransport(scenario = "empty"): Transport {
         event = parsed.searchParams.get("event_type");
       return respond(
         page(
-          (question && question !== "Q05") ||
-            (event &&
-              !demo.process.event_timeline.some((e) => e.event_type === event))
-            ? []
-            : [{ participant_id: "anon_p017" }],
+          demo.participants.filter((p) =>
+            demo.events.some(
+              (e) =>
+                e.participant_id === p.participant_id &&
+                (!question || e.question_id === question) &&
+                (!event || e.event_type === event),
+            ),
+          ),
         ),
       );
     }
     if (/\/students\/[^/]+\/(process|replay)$/.test(path)) {
-      if (!path.includes("/anon_p017/"))
-        return fail(404, "NOT_FOUND", "匿名参与者不存在");
-      return respond(path.endsWith("process") ? demo.process : demo.replay);
+      const participant = demo.processes.find((p) =>
+        path.includes(`/${p.participant_id}/`),
+      );
+      if (!participant) return fail(404, "NOT_FOUND", "匿名参与者不存在");
+      return respond(
+        path.endsWith("process")
+          ? participant
+          : demo.replayFor(participant.participant_id),
+      );
     }
     if (
       path.includes("/evidence/") ||
@@ -340,15 +343,34 @@ export function createMockTransport(scenario = "empty"): Transport {
       );
     }
     if (path.endsWith("/agent/reviews") && method === "POST") {
-      if (!reviewInputSchema.safeParse(body()).success)
+      const input = reviewInputSchema.safeParse(body());
+      if (!input.success)
         return fail(400, "INVALID_REQUEST", "只接受结构化 question 与 scope");
-      if (scenario === "demo_insufficient_evidence")
+      if (
+        scenario === "demo_insufficient_evidence" ||
+        input.data.scope.question_ids.some((id) => id !== "Q05") ||
+        input.data.scope.key_node_ids.some((id) => id !== "node_0003")
+      )
         return fail(
           422,
           "INSUFFICIENT_EVIDENCE",
           "当前 Evidence 不足，无法生成确定性结论",
         );
-      return respond(demo.review);
+      let saved = null;
+      try {
+        saved = feedbackSchema.safeParse(
+          JSON.parse(localStorage.getItem(feedbackKey) ?? "null"),
+        );
+      } catch {
+        /* Missing or corrupted storage leaves the original report available. */
+      }
+      return respond({
+        ...demo.review,
+        summary:
+          saved?.success && saved.data.action === "EDIT_AND_ACCEPT"
+            ? saved.data.edited_text
+            : demo.review.summary,
+      });
     }
     if (
       /^\/teacher\/agent\/reviews\/[^/]+\/feedback$/.test(path) &&
@@ -356,8 +378,20 @@ export function createMockTransport(scenario = "empty"): Transport {
     ) {
       if (!path.includes("/review_0001/"))
         return fail(404, "NOT_FOUND", "复盘不存在");
-      if (!feedbackSchema.safeParse(body()).success)
+      const feedback = feedbackSchema.safeParse(body());
+      if (!feedback.success)
         return fail(400, "INVALID_REQUEST", "反馈内容无效");
+      if (scenario === "demo_insufficient_evidence")
+        return fail(422, "INSUFFICIENT_EVIDENCE", "证据不足，不能提交审核");
+      try {
+        localStorage.setItem(feedbackKey, JSON.stringify(feedback.data));
+      } catch {
+        return fail(
+          500,
+          "LOCAL_STORAGE_UNAVAILABLE",
+          "本地反馈保存失败，请检查浏览器存储设置",
+        );
+      }
       return respond(null);
     }
     if (path.startsWith("/research/")) {

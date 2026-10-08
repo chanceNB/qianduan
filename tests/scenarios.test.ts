@@ -44,7 +44,20 @@ it("validates all teacher happy-path DTOs and evidence chain", async () => {
       .participant_id,
   ).toBe("anon_p017");
   const process = await c.get(`${s}/students/anon_p017/process`, processSchema);
-  expect(process.event_timeline[1].event_type).toBe("RETURN");
+  expect(
+    process.event_timeline.some(
+      (e) => e.question_id === "Q05" && e.event_type === "QUESTION_VISIT",
+    ),
+  ).toBe(true);
+  const returning = await c.get(
+    `${s}/students/anon_p018/process`,
+    processSchema,
+  );
+  expect(
+    returning.event_timeline.some(
+      (e) => e.question_id === "Q05" && e.event_type === "RETURN",
+    ),
+  ).toBe(true);
   const replay = await c.get(`${s}/students/anon_p017/replay`, replaySchema);
   expect(replay.coordinate_system).toBe("PAGE_NORM_TOP_LEFT");
   expect(
@@ -135,7 +148,7 @@ it("research demo data stays truthful and fusion carries no trained metrics", as
 it("filters apply question/event constraints and preserve zero result count", async () => {
   const c = client("demo_happy_path");
   const data = await c.get(
-    `${s}/students?event_type=REVISION_CANDIDATE`,
+    `${s}/students?question_id=Q01&event_type=REVISION_CANDIDATE`,
     pageSchema(participantSchema),
   );
   expect(data.total).toBe(0);
