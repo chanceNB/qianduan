@@ -1,0 +1,17 @@
+:root {
+  --bg: #fafbfa;
+  --surface: #fff;
+  --surface-subtle: #f7f9f8;
+  --border: #e5eae7;
+  --text-primary: #111815;
+  --text-secondary: #5e6b65;
+  --text-muted: #98a29d;
+  --green: #168c46;
+  --green-hover: #11783b;
+  --green-soft: #e8f6ed;
+  --green-soft-2: #f2faf5;
+  --yellow: #f0c94e;
+  --yellow-soft: #fff6d8;
+  --danger: #d83b35;
+  --danger-soft: #fdecec;
+}
