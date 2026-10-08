@@ -204,6 +204,32 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
               >
                 AI 复盘
               </button>
+              <button
+                className="soft-button"
+                onClick={() => {
+                  const back = selection(question, student.participant_id);
+                  back.set("full", full ? "1" : "0");
+                  if (time != null) back.set("time", String(time));
+                  navigate(
+                    `/demo/student?${new URLSearchParams({ session: data.session.session_id, student: student.participant_id, question, return: `/classroom/${data.session.session_id}/${tab}?${back}` })}`,
+                  );
+                }}
+              >
+                演示学生反馈
+              </button>
+              <button
+                className="soft-button"
+                onClick={() => {
+                  const back = selection(question, student.participant_id);
+                  back.set("full", full ? "1" : "0");
+                  if (time != null) back.set("time", String(time));
+                  navigate(
+                    `/demo/research/datasets?${new URLSearchParams({ session: data.session.session_id, return: `/classroom/${data.session.session_id}/${tab}?${back}` })}`,
+                  );
+                }}
+              >
+                Research Lab
+              </button>
             </div>
           </section>
           <section aria-label="班级态势可视化">

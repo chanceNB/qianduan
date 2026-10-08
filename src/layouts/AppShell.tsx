@@ -87,7 +87,11 @@ export const useGlobalSearch = () => useContext(SearchContext);
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
-  const module = location.pathname.split("/")[1];
+  const module = location.pathname.startsWith("/demo/research/")
+    ? "research-showcase"
+    : location.pathname.startsWith("/demo/student")
+      ? "students"
+      : location.pathname.split("/")[1];
   const config = secondary[module] ?? secondary.home;
   const expanded = module === "research" || module === "settings";
   const [activity, setActivity] = useState(!showcaseEnabled);
@@ -116,7 +120,13 @@ export function AppShell() {
               .map(({ path, label, icon: Icon }) => (
                 <NavLink
                   key={path}
-                  to={path}
+                  to={
+                    showcaseEnabled &&
+                    user?.role === "TEACHER" &&
+                    path === "/research"
+                      ? "/demo/research/datasets?session=demo_session_001"
+                      : path
+                  }
                   aria-label={label}
                   title={label}
                   className={({ isActive }) => (isActive ? "active" : "")}

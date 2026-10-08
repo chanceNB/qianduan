@@ -18,6 +18,10 @@ import { Settings } from "./pages/Settings";
 import { Skeleton, ErrorState } from "./components/ui";
 import { ApiError } from "./api/client";
 import { canAccess } from "./routes/permissions";
+import {
+  DemoStudent,
+  ResearchShowcase,
+} from "./components/showcase/DemoStudentResearch";
 function Protected({
   area = "home",
 }: {
@@ -62,6 +66,11 @@ export function App() {
                     element={<SessionWorkspace />}
                   />
                   <Route path="/students" element={<Students />} />
+                  <Route path="/demo/student" element={<DemoStudent />} />
+                  <Route
+                    path="/demo/research/:section"
+                    element={<ResearchShowcase />}
+                  />
                 </Route>
                 <Route element={<Protected area="ai" />}>
                   <Route path="/ai" element={<AI />} />

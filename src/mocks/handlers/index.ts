@@ -8,6 +8,7 @@ import { scenarios } from "../scenarios";
 import * as demo from "../fixtures/demo";
 import { generateDemoReport } from "../../demo/reportEngine";
 import { demoReportInputSchema } from "../../demo/reportContract";
+import { personalProjection, researchProjection } from "../studentResearch";
 export const handlerList = [
   "POST /auth/login",
   "GET /me",
@@ -17,6 +18,8 @@ export const handlerList = [
   "GET /classes/:class_id/sessions",
   "GET /teacher/sessions/:session_id/overview",
   "GET /teacher/sessions/:session_id/showcase",
+  "GET /teacher/sessions/:session_id/demo-students/:participant_id",
+  "GET /teacher/sessions/:session_id/research-showcase",
   "GET /teacher/sessions/:session_id/demo-report",
   "POST /teacher/sessions/:session_id/demo-report",
   "GET /teacher/sessions/:session_id/class-state",
@@ -232,6 +235,23 @@ export function createMockTransport(scenario = "empty"): Transport {
       return fail(404, "NOT_FOUND", "课堂不存在");
     if (path.startsWith("/teacher/") && empty)
       return fail(404, "NOT_FOUND", "暂无课堂数据");
+    if (
+      /\/demo-students\/[^/]+$/.test(path) ||
+      path.endsWith("/research-showcase")
+    ) {
+      if (!scenario.startsWith("demo_"))
+        return fail(404, "NOT_FOUND", "仅用于 Mock 演示");
+      if (path.endsWith("/research-showcase"))
+        return respond(researchProjection(scenario));
+      const projection = personalProjection(
+        path.split("/").at(-1)!,
+        scenario,
+        feedbackKey,
+      );
+      return projection
+        ? respond(projection)
+        : fail(404, "NOT_FOUND", "演示学生不存在");
+    }
     if (path.endsWith("/demo-report")) {
       const input = demoReportInputSchema.safeParse(
         method === "POST"

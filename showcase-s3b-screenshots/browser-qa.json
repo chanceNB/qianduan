@@ -1,0 +1,55 @@
+{
+  "viewports": [
+    {
+      "height": 900,
+      "page": "student",
+      "scrollWidth": 1425,
+      "width": 1440
+    },
+    {
+      "height": 1080,
+      "page": "student",
+      "scrollWidth": 1905,
+      "width": 1920
+    },
+    {
+      "height": 1080,
+      "page": "research",
+      "scrollWidth": 1920,
+      "width": 1920
+    },
+    {
+      "height": 900,
+      "page": "research",
+      "scrollWidth": 1440,
+      "width": 1440
+    },
+    {
+      "height": 844,
+      "page": "research",
+      "scrollWidth": 375,
+      "width": 390
+    },
+    {
+      "height": 844,
+      "page": "student",
+      "scrollWidth": 375,
+      "width": 390
+    }
+  ],
+  "checks": [
+    "A/B/C frozen results and process counts",
+    "B playback/pause",
+    "C personal evidence only own IDs, PARTIAL quality",
+    "EDIT_AND_ACCEPT persisted text restored on reload",
+    "REJECT hides teacher focus",
+    "ACCEPT displays template approved class focus",
+    "insufficient AI refusal label, no review adoption; student facts only and no Evidence",
+    "Research five sections navigate, original Drawer trace",
+    "390px personal Evidence operable, no overflow",
+    "final build: Research failure-cases -> AI -> same Research -> classroom full/time preserved (20:00)"
+  ],
+  "console": [],
+  "url": "http://127.0.0.1:4185/demo/student?session=demo_session_001&student=anon_p019&question=Q05&return=%2Fclassroom%2Fdemo_session_001%2Foverview%3Fquestion%3DQ05%26student%3Danon_p017%26full%3D1%26time%3D1200000",
+  "mode": "static Demo build via Vite preview :4185"
+}

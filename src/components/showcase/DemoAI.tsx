@@ -42,7 +42,12 @@ export function DemoAI() {
     returnPath?.startsWith(`/classroom/${encodeURIComponent(session)}/`) &&
     /^\/classroom\/[^/]+\/(overview|class-state|key-nodes)\?/.test(returnPath)
       ? returnPath
-      : fallback;
+      : returnPath &&
+          /^\/demo\/(student\?|research\/(datasets|models|experiments|failure-cases|evidence-trace)\?)/.test(
+            returnPath,
+          )
+        ? returnPath
+        : fallback;
   function update(values: Record<string, string>) {
     const next = new URLSearchParams(params);
     Object.entries(values).forEach(([key, value]) =>
@@ -92,8 +97,24 @@ export function DemoAI() {
         />
         {session && (
           <Link className="soft-button" to={back}>
-            返回课堂
+            {back.startsWith("/demo/") ? "返回演示流程" : "返回课堂"}
           </Link>
+        )}
+        {session && (
+          <>
+            <Link
+              className="soft-button"
+              to={`/demo/student?${new URLSearchParams({ session, student: new URL(back, "http://demo.local").searchParams.get("student") ?? "anon_p017", question: "Q05", return: back })}`}
+            >
+              演示学生反馈
+            </Link>
+            <Link
+              className="soft-button"
+              to={`/demo/research/datasets?${new URLSearchParams({ session, return: back })}`}
+            >
+              Research Lab
+            </Link>
+          </>
         )}
         <button
           className="soft-button"
@@ -344,7 +365,10 @@ function DemoReportWorkspace({
           <section aria-label="Demo 课堂复盘">
             <p className="showcase-eyebrow">当前阅读重点：{task}</p>
             <p className="showcase-eyebrow">
-              DEMO / SYNTHETIC · {report.status} · 必须人工审核
+              DEMO / SYNTHETIC · {report.status} ·{" "}
+              {report.status === "INSUFFICIENT_EVIDENCE"
+                ? "证据不足 · 已拒绝生成"
+                : "必须人工审核"}
             </p>
             <h3 className={task === "课堂复盘" ? "demo-task-focus" : ""}>
               本节课堂可观察事实
