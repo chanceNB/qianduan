@@ -20,15 +20,39 @@ export const tokenStore = {
   },
 };
 let transport: Transport = (url, init) => fetch(url, init);
+const defaultScenario = import.meta.env.VITE_MOCK_SCENARIO ?? "empty";
+const scenarioKey = "zhicha-showcase-scenario";
+let mockFactory:
+  typeof import("../mocks/handlers").createMockTransport | undefined;
+export function getDemoScenario() {
+  if (apiMode === "mock" && defaultScenario.startsWith("demo_")) {
+    try {
+      const saved = sessionStorage.getItem(scenarioKey);
+      if (saved === "demo_happy_path" || saved === "demo_insufficient_evidence")
+        return saved;
+    } catch {
+      /* Use the configured scenario if storage cannot be read. */
+    }
+  }
+  return defaultScenario;
+}
+export function setDemoScenario(
+  scenario: "demo_happy_path" | "demo_insufficient_evidence",
+) {
+  if (!mockFactory || !defaultScenario.startsWith("demo_"))
+    throw new Error("当前模式不支持 Demo 场景切换");
+  sessionStorage.setItem(scenarioKey, scenario);
+  transport = mockFactory(scenario);
+  window.dispatchEvent(new Event("zhicha-auth-reset")); // Close stale Evidence; retain authentication.
+}
 if (apiMode === "mock") {
   const { createMockTransport } = await import("../mocks/handlers");
-  transport = createMockTransport(
-    import.meta.env.VITE_MOCK_SCENARIO ?? "empty",
-  );
+  mockFactory = createMockTransport;
+  transport = createMockTransport(getDemoScenario());
 }
 export const apiClient = createClient({
   baseUrl,
-  transport,
+  transport: (url, init) => transport(url, init),
   getToken: tokenStore.get,
   getAuthGeneration: tokenStore.generation,
   onUnauthorized: () => {

@@ -8,14 +8,20 @@ import { questionLabel } from "./ClassStateCharts";
 export function EventTimeline({
   events,
   onTime,
+  initialTime,
 }: {
   events: z.infer<typeof eventSchema>[];
   onTime?: (time: number) => void;
+  initialTime?: number;
 }) {
   const ordered = [...events].sort((a, b) => a.start_time_ms - b.start_time_ms);
   const start = ordered[0]?.start_time_ms ?? 0;
   const end = ordered.at(-1)?.end_time_ms ?? start;
-  const [time, setTime] = useState(start);
+  const [time, setTime] = useState(
+    initialTime != null && Number.isFinite(initialTime)
+      ? Math.max(start, Math.min(end, initialTime))
+      : start,
+  );
   const [playing, setPlaying] = useState(false);
   const current = ordered.filter((e) => e.start_time_ms <= time).at(-1);
   useEffect(() => {

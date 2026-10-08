@@ -16,6 +16,8 @@ import {
 } from "../components/ui";
 import { EvidenceLinks } from "../components/EvidenceDrawer";
 import type { Review } from "../contracts";
+import { showcaseEnabled } from "../demo/showcase";
+import { DemoAI } from "../components/showcase/DemoAI";
 const templates = [
   "生成本节课堂复盘",
   "为什么当前关键节点值得关注？",
@@ -23,6 +25,9 @@ const templates = [
   "总结需要重点复盘的题目",
 ];
 export function AI() {
+  return showcaseEnabled ? <DemoAI /> : <StandardAI />;
+}
+function StandardAI() {
   const selection = useClassroomSelection();
   const [question, setQuestion] = useState("");
   const [node, setNode] = useState("");

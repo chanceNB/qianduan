@@ -6,6 +6,8 @@ import {
 } from "../../contracts";
 import { scenarios } from "../scenarios";
 import * as demo from "../fixtures/demo";
+import { generateDemoReport } from "../../demo/reportEngine";
+import { demoReportInputSchema } from "../../demo/reportContract";
 export const handlerList = [
   "POST /auth/login",
   "GET /me",
@@ -15,6 +17,8 @@ export const handlerList = [
   "GET /classes/:class_id/sessions",
   "GET /teacher/sessions/:session_id/overview",
   "GET /teacher/sessions/:session_id/showcase",
+  "GET /teacher/sessions/:session_id/demo-report",
+  "POST /teacher/sessions/:session_id/demo-report",
   "GET /teacher/sessions/:session_id/class-state",
   "GET /teacher/sessions/:session_id/key-nodes",
   "GET /teacher/sessions/:session_id/questions/:question_id",
@@ -37,6 +41,7 @@ export function createMockTransport(scenario = "empty"): Transport {
   const revoked = new Set<string>();
   const feedbackKey = `zhicha-showcase-v0.1:${scenario}:teacher_001:demo_session_001:review_0001`;
   let request = 0;
+  let demoReportStatus: "READY" | "INSUFFICIENT_EVIDENCE" | null = null;
   return async (url, init) => {
     const parsed = new URL(url, "http://mock.local");
     const path = parsed.pathname.replace(/^\/(mock-api|api)\/v1/, "");
@@ -227,6 +232,52 @@ export function createMockTransport(scenario = "empty"): Transport {
       return fail(404, "NOT_FOUND", "课堂不存在");
     if (path.startsWith("/teacher/") && empty)
       return fail(404, "NOT_FOUND", "暂无课堂数据");
+    if (path.endsWith("/demo-report")) {
+      const input = demoReportInputSchema.safeParse(
+        method === "POST"
+          ? body()
+          : {
+              question_id: parsed.searchParams.get("question_id") ?? "Q05",
+              key_node_id:
+                parsed.searchParams.get("key_node_id") ?? demo.node.node_id,
+              evidence_ids: parsed.searchParams.has("evidence_id")
+                ? (parsed.searchParams.get("evidence_id") || "")
+                    .split(",")
+                    .filter(Boolean)
+                : [demo.evidenceId],
+              task: parsed.searchParams.get("task") ?? "课堂复盘",
+            },
+      );
+      if (!input.success)
+        return fail(400, "INVALID_REQUEST", "Demo 复盘输入无效");
+      const report = generateDemoReport(input.data, {
+        sessionId: demo.session.session_id,
+        node: demo.node,
+        evidence:
+          scenario === "demo_insufficient_evidence" ? null : demo.evidence,
+        events: demo.events,
+        questionIds: demo.questions.map((q) => q.question_id),
+      });
+      demoReportStatus = report.status;
+      let feedback = null,
+        storage_warning = null;
+      try {
+        const raw = localStorage.getItem(feedbackKey);
+        if (raw) {
+          const saved = feedbackSchema.safeParse(JSON.parse(raw));
+          if (saved.success && report.status === "READY") feedback = saved.data;
+          else if (!saved.success)
+            storage_warning = "本地审核记录损坏，未恢复审核状态。";
+        }
+      } catch {
+        storage_warning = "本地审核记录读取失败，无法确认已保存状态。";
+      }
+      return respond({
+        report: method === "POST" || feedback ? report : null,
+        feedback,
+        storage_warning,
+      });
+    }
     if (path.endsWith("/showcase"))
       return respond({
         session: demo.session,
@@ -405,7 +456,10 @@ export function createMockTransport(scenario = "empty"): Transport {
       const feedback = feedbackSchema.safeParse(body());
       if (!feedback.success)
         return fail(400, "INVALID_REQUEST", "反馈内容无效");
-      if (scenario === "demo_insufficient_evidence")
+      if (
+        scenario === "demo_insufficient_evidence" ||
+        demoReportStatus === "INSUFFICIENT_EVIDENCE"
+      )
         return fail(422, "INSUFFICIENT_EVIDENCE", "证据不足，不能提交审核");
       try {
         localStorage.setItem(feedbackKey, JSON.stringify(feedback.data));

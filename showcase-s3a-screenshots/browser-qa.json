@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-08",
+  "source": "static Demo build at http://127.0.0.1:4185",
+  "viewports": [
+    {
+      "height": 768,
+      "scrollWidth": 1351,
+      "width": 1366
+    },
+    {
+      "height": 900,
+      "scrollWidth": 1425,
+      "width": 1440
+    },
+    {
+      "height": 1080,
+      "scrollWidth": 1905,
+      "width": 1920
+    },
+    {
+      "height": 844,
+      "scrollWidth": 375,
+      "width": 390
+    }
+  ],
+  "checks": [
+    "Q5 session/question/node/Evidence context",
+    "12/4/3 synthetic event-derived report",
+    "Evidence Drawer Q05 36 events and 14:00-15:00 window",
+    "ACCEPT restored after reload",
+    "EDIT_AND_ACCEPT original separate, adopted text and editor restored",
+    "REJECT restored, no adoption",
+    "insufficient scenario blocks references and adoption; reload scenario persists",
+    "restore normal evidence",
+    "return B Q05 14:30",
+    "full-class B return 01:51 full=1",
+    "C timeline switching and play/pause; no strokes",
+    "reading task focus",
+    "clear classroom removes report and actions"
+  ],
+  "consoleErrorWarn": [],
+  "intermediateIssues": [
+    "First preview navigation before server startup: connection refused; server started.",
+    "Reload while production build replaced dist: contract/JSON error; final Demo build regenerated and all final checks rerun.",
+    "Range fill did not update React time; keyboard Home used and verified."
+  ]
+}

@@ -52,7 +52,7 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
   const student =
     data.students.find((s) => s.participant_id === params.get("student")) ??
     data.students[0];
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState(params.get("full") === "1");
   const processes = useResource(
     () =>
       Promise.all(
@@ -77,7 +77,9 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
     return next;
   }
   function selectStudent(id: string, scroll = false) {
-    setParams(selection(question, id));
+    const next = selection(question, id);
+    next.delete("time");
+    setParams(next);
     setFull(scroll);
     if (scroll)
       document
@@ -184,6 +186,24 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
               >
                 查看 Evidence
               </button>
+              <button
+                className="soft-button"
+                onClick={() => {
+                  const back = selection(question, student.participant_id);
+                  back.set("full", full ? "1" : "0");
+                  if (time != null) back.set("time", String(time));
+                  const context = new URLSearchParams({
+                    session: data.session.session_id,
+                    question: "Q05",
+                    node: data.node.node_id,
+                    evidence: data.node.evidence_refs[0],
+                    return: `/classroom/${data.session.session_id}/${tab}?${back}`,
+                  });
+                  navigate(`/ai?${context}`);
+                }}
+              >
+                AI 复盘
+              </button>
             </div>
           </section>
           <section aria-label="班级态势可视化">
@@ -259,6 +279,11 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
                     key={`${student.participant_id}:${question}:${full}`}
                     events={timelineEvents}
                     onTime={setTime}
+                    initialTime={
+                      params.has("time")
+                        ? Number(params.get("time"))
+                        : undefined
+                    }
                   />
                 )}
               </Card>
