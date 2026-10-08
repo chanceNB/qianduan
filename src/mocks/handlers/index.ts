@@ -14,6 +14,7 @@ export const handlerList = [
   "GET /classes",
   "GET /classes/:class_id/sessions",
   "GET /teacher/sessions/:session_id/overview",
+  "GET /teacher/sessions/:session_id/showcase",
   "GET /teacher/sessions/:session_id/class-state",
   "GET /teacher/sessions/:session_id/key-nodes",
   "GET /teacher/sessions/:session_id/questions/:question_id",
@@ -226,6 +227,29 @@ export function createMockTransport(scenario = "empty"): Transport {
       return fail(404, "NOT_FOUND", "课堂不存在");
     if (path.startsWith("/teacher/") && empty)
       return fail(404, "NOT_FOUND", "暂无课堂数据");
+    if (path.endsWith("/showcase"))
+      return respond({
+        session: demo.session,
+        questions: demo.questions,
+        node: demo.keyNode(),
+        state: {
+          ...state,
+          quality: {
+            ...state.quality,
+            availability:
+              scenario === "demo_not_computable"
+                ? "NOT_COMPUTABLE"
+                : state.quality.availability,
+          },
+        },
+        authenticity: demo.demoTags,
+        students: demo.participants.slice(0, 3).map((p) => ({
+          ...p,
+          results: demo.results.filter(
+            (r) => r.participant_id === p.participant_id,
+          ),
+        })),
+      });
     if (path.endsWith("/overview"))
       return respond({
         session: demo.session,

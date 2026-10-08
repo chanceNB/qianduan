@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "../components/ui";
 import { useAuth } from "../components/AuthProvider";
+import { showcaseEnabled } from "../demo/showcase";
 const primary = [
   { path: "/home", label: "首页", icon: Home },
   { path: "/classroom", label: "课堂", icon: Presentation },
@@ -89,7 +90,7 @@ export function AppShell() {
   const module = location.pathname.split("/")[1];
   const config = secondary[module] ?? secondary.home;
   const expanded = module === "research" || module === "settings";
-  const [activity, setActivity] = useState(true);
+  const [activity, setActivity] = useState(!showcaseEnabled);
   const [search, setSearch] = useState("");
   const { user, bootstrap } = useAuth();
   return (

@@ -17,6 +17,8 @@ import {
   formatMs,
 } from "../components/ui";
 import { EvidenceLinks } from "../components/EvidenceDrawer";
+import { showcaseEnabled } from "../demo/showcase";
+import { Q5Showcase } from "../components/showcase/Q5Showcase";
 export function Classroom() {
   const [classId, setClassId] = useState("");
   const [from, setFrom] = useState("");
@@ -168,6 +170,14 @@ export function Classroom() {
   );
 }
 export function SessionWorkspace() {
+  const { sessionId = "", tab = "overview" } = useParams();
+  return showcaseEnabled ? (
+    <Q5Showcase sessionId={sessionId} tab={tab} />
+  ) : (
+    <StandardSessionWorkspace />
+  );
+}
+function StandardSessionWorkspace() {
   const { sessionId = "", tab = "overview" } = useParams();
   const overview = useResource(
     () => teacherApi.overview(sessionId),

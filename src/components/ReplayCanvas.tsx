@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { Replay } from "../contracts";
 import { EmptyState, QualityBadge, formatMs } from "./ui";
-export function ReplayCanvas({ replay }: { replay: Replay }) {
+export function ReplayCanvas({
+  replay,
+  timeMs,
+}: {
+  replay: Replay;
+  timeMs?: number;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const end = Math.max(0, ...replay.strokes.map((s) => s.end_time_ms));
   const start = Math.min(end, ...replay.strokes.map((s) => s.start_time_ms));
@@ -20,7 +26,7 @@ export function ReplayCanvas({ replay }: { replay: Replay }) {
       ctx.beginPath();
       let first = true;
       for (const p of stroke.points) {
-        if (p.t_ms > time) break;
+        if (p.t_ms > (timeMs ?? time)) break;
         if (first) {
           ctx.moveTo(p.x * 600, p.y * 800);
           first = false;
@@ -28,7 +34,7 @@ export function ReplayCanvas({ replay }: { replay: Replay }) {
       }
       ctx.stroke();
     }
-  }, [replay, time]);
+  }, [replay, time, timeMs]);
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(
@@ -45,7 +51,10 @@ export function ReplayCanvas({ replay }: { replay: Replay }) {
     <div className="replay">
       <QualityBadge quality={replay.quality} />
       {replay.strokes.length === 0 ? (
-        <EmptyState title="暂无可回放轨迹" />
+        <EmptyState
+          title="暂无可回放笔迹"
+          description="未提供实际点阵坐标，请查看作答事件时间轴。"
+        />
       ) : (
         <>
           <canvas
@@ -54,30 +63,32 @@ export function ReplayCanvas({ replay }: { replay: Replay }) {
             height={800}
             aria-label="标准归一化点阵回放"
           />
-          <div className="replay-controls">
-            <button
-              onClick={() => {
-                if (time >= end) {
-                  setTime(start);
-                  setPlaying(true);
-                } else setPlaying((x) => !x);
-              }}
-            >
-              {playing && time < end ? "暂停" : "播放"}
-            </button>
-            <input
-              aria-label="回放时间"
-              type="range"
-              min={start}
-              max={end}
-              value={time}
-              onChange={(e) => {
-                setPlaying(false);
-                setTime(Number(e.target.value));
-              }}
-            />
-            <span>{formatMs(time)}</span>
-          </div>
+          {timeMs === undefined && (
+            <div className="replay-controls">
+              <button
+                onClick={() => {
+                  if (time >= end) {
+                    setTime(start);
+                    setPlaying(true);
+                  } else setPlaying((x) => !x);
+                }}
+              >
+                {playing && time < end ? "暂停" : "播放"}
+              </button>
+              <input
+                aria-label="回放时间"
+                type="range"
+                min={start}
+                max={end}
+                value={time}
+                onChange={(e) => {
+                  setPlaying(false);
+                  setTime(Number(e.target.value));
+                }}
+              />
+              <span>{formatMs(time)}</span>
+            </div>
+          )}
         </>
       )}
     </div>
