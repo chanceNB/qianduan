@@ -86,19 +86,18 @@ function Drawer({ id, close }: { id: string; close: () => void }) {
     const handle = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
       if (e.key === "Tab") {
-        const items = ref.current?.querySelectorAll<HTMLElement>(
+        const drawerItems = ref.current?.querySelectorAll<HTMLElement>(
           'button, a, input, select, textarea, summary, [tabindex="0"]',
         );
-        if (!items?.length) return;
-        const first = items[0],
-          last = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
+        const items = [
+          ...document.querySelectorAll<HTMLElement>(
+            ".showcase-guide button:not(:disabled)",
+          ),
+          ...Array.from(drawerItems ?? []),
+        ];
+        if (!items.length) return;
+        const current=items.indexOf(document.activeElement as HTMLElement);
+        e.preventDefault();items[(current+(e.shiftKey?-1:1)+items.length)%items.length].focus();
       }
     };
     document.addEventListener("keydown", handle);
@@ -227,7 +226,11 @@ export function EvidenceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const clear = () => setId(null);
     window.addEventListener("zhicha-auth-reset", clear);
-    return () => window.removeEventListener("zhicha-auth-reset", clear);
+    window.addEventListener("showcase-close-evidence", clear);
+    return () => {
+      window.removeEventListener("zhicha-auth-reset", clear);
+      window.removeEventListener("showcase-close-evidence", clear);
+    };
   }, []);
   return (
     <Context.Provider value={{ open: setId }}>

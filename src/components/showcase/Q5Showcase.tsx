@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { showcaseApi, type Showcase } from "../../demo/showcase";
 import { studentApi } from "../../api/student";
@@ -22,6 +22,7 @@ import {
 } from "./ClassStateCharts";
 import { StudentProcessComparison } from "./StudentProcessComparison";
 import { EventTimeline } from "./EventTimeline";
+import { readGuide } from "../../demo/guide";
 
 export function Q5Showcase({
   sessionId,
@@ -67,6 +68,28 @@ function ShowcaseContent({ data, tab }: { data: Showcase; tab: string }) {
     [data.session.session_id, student.participant_id],
   );
   const [time, setTime] = useState<number>();
+  useEffect(() => {
+    if (time == null) return;
+    window.dispatchEvent(
+      new CustomEvent("showcase-classroom-context", {
+        detail: {
+          time: String(time),
+          full: full ? "1" : "0",
+          student: student.participant_id,
+        },
+      }),
+    );
+    if (
+      readGuide()?.paused === false &&
+      (params.get("time") !== String(time) ||
+        params.get("full") !== (full ? "1" : "0"))
+    ) {
+      const next = new URLSearchParams(params);
+      next.set("time", String(time));
+      next.set("full", full ? "1" : "0");
+      setParams(next, { replace: true });
+    }
+  }, [time, full, student.participant_id, params, setParams]);
   const process = processes.data?.find(
     (p) => p.participant_id === student.participant_id,
   );

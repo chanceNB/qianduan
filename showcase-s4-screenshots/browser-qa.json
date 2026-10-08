@@ -1,0 +1,65 @@
+{
+  "routesCompleted": 2,
+  "offlineMode": "CSP external-resource isolation: default-src self, connect-src none; physical network disconnect not performed",
+  "viewports": [
+    {
+      "height": 768,
+      "scrollWidth": 1366,
+      "width": 1366
+    },
+    {
+      "height": 900,
+      "page": "research",
+      "scrollWidth": 1440,
+      "width": 1440
+    },
+    {
+      "height": 1080,
+      "page": "research",
+      "scrollWidth": 1920,
+      "width": 1920
+    },
+    {
+      "height": 844,
+      "page": "research",
+      "scrollWidth": 375,
+      "width": 390
+    },
+    {
+      "height": 844,
+      "page": "student",
+      "scrollWidth": 390,
+      "width": 390
+    },
+    {
+      "height": 844,
+      "page": "classroom",
+      "scrollWidth": 375,
+      "width": 390
+    },
+    {
+      "height": 1080,
+      "page": "classroom",
+      "scrollWidth": 1905,
+      "width": 1920
+    }
+  ],
+  "checks": [
+    "two complete six-step routes",
+    "manual ACCEPT pass1 / EDIT_AND_ACCEPT pass2",
+    "student personal facts/evidence",
+    "Research five sections",
+    "deep route reload and review restore",
+    "free exploration settings + confirmed reset restores step1",
+    "four viewport widths <= viewport"
+  ],
+  "console": [],
+  "normalConsole": [],
+  "resources": [
+    "/assets/index-8Kp7HUlh.js",
+    "/assets/reportContract-QYE-JrBo.js",
+    "/assets/index-VGEjAU4D.css",
+    "/assets/index-C1mh7l87.js",
+    "/assets/logo.png"
+  ]
+}

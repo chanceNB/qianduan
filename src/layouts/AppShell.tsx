@@ -24,6 +24,7 @@ import {
 import { EmptyState } from "../components/ui";
 import { useAuth } from "../components/AuthProvider";
 import { showcaseEnabled } from "../demo/showcase";
+import { Guide } from "../components/showcase/Guide";
 const primary = [
   { path: "/home", label: "首页", icon: Home },
   { path: "/classroom", label: "课堂", icon: Presentation },
@@ -168,6 +169,9 @@ export function AppShell() {
         </aside>
         <div className="main-column">
           <header className="topbar">
+            {showcaseEnabled && (
+              <span className="showcase-runtime-label">DEMO / SYNTHETIC</span>
+            )}
             <label className="global-search">
               <Search size={18} />
               <input
@@ -208,6 +212,7 @@ export function AppShell() {
             )}
           </header>
           <main className="workspace">
+            <Guide />
             <Outlet />
           </main>
         </div>

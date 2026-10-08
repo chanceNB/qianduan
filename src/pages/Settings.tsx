@@ -11,6 +11,7 @@ import {
 import { useAuth } from "../components/AuthProvider";
 import { apiMode } from "../api/runtime";
 import { PageTitle, Card, DataFields, ErrorState } from "../components/ui";
+import { ResetDemo } from "../components/showcase/Guide";
 const prefs = [
   ["density", "内容密度"],
   ["authenticity", "完整真实性标签"],
@@ -200,6 +201,7 @@ export function Settings() {
         </Card>
       </div>
       <Card className="account-actions">
+        <ResetDemo />
         <div>
           <h3>
             账户操作 <small>退出登录后将返回登录页面</small>

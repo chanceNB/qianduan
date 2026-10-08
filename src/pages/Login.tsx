@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../components/AuthProvider";
 import { ErrorState } from "../components/ui";
+import { showcaseEnabled } from "../demo/showcase";
 export function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
@@ -43,14 +44,18 @@ export function Login() {
           <img src="/assets/logo.png" alt="智察课堂标志" />
           <div>
             <h1>智察课堂 2.0</h1>
-            <p>用数据看见真实的课堂</p>
+            <p>
+              {showcaseEnabled
+                ? "DEMO / SYNTHETIC · 比赛演示"
+                : "用数据看见真实的课堂"}
+            </p>
           </div>
         </div>
         <p className="login-motto">让每一次教学都有证据可循</p>
         <div className="login-values">
           <div>
             <Brain />
-            <span>真实数据</span>
+            <span>{showcaseEnabled ? "合成演示数据" : "真实数据"}</span>
           </div>
           <div>
             <FlaskConical />

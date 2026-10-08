@@ -1,0 +1,11 @@
+Showcase: http://127.0.0.1:4186
+GET /home
+GET /assets/index-DlfZ2brD.js
+GET /assets/index-BC6BYs2t.css
+GET /assets/reportContract-QYE-JrBo.js
+GET /assets/index-C1mh7l87.js
+GET /favicon.ico
+GET /assets/logo.png
+GET /favicon.ico
+GET /assets/login-background.png
+GET /assets/welcome.png

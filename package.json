@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:showcase": "tsc --noEmit && vite build --config vite.showcase.config.ts --mode showcase",
+    "preview:showcase": "node scripts/serve-showcase.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

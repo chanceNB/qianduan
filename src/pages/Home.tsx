@@ -2,12 +2,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Presentation, Clipboard, UsersRound, ScanLine } from "lucide-react";
 import { Card, EmptyState } from "../components/ui";
 import { useAuth } from "../components/AuthProvider";
+import { DemoStart } from "../components/showcase/Guide";
 export function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const recent = useLocation().pathname.endsWith("/recent");
   return (
     <div className="home-page">
+      <DemoStart />
       {!recent && (
         <>
           <section className="welcome-banner">
